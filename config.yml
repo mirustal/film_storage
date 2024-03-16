@@ -1,0 +1,15 @@
+---
+modelog: debug
+
+http:
+  type: port
+  bind_ip: 0.0.0.0
+  port: 8081
+
+postgressdb:
+  host: localhost
+  port: 5432
+  user: admin
+  name: admin
+  password: name
+  database: films

@@ -1,0 +1,420 @@
+openapi: 3.0.0
+info:
+  title: Хранилище фильмов
+  description: API для управления хранилищем
+  version: 1.0.0
+
+servers:
+  - url: 'localhost:8081'
+    description: API хрнаилища 
+
+paths:
+  /actors:
+    post:
+      summary: Добавление актёра
+      description: Добавляет нового актёра в систему.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Actor'
+      responses:
+        '201':
+          description: Актёр успешно добавлен
+        '400':
+          description: Некорректный запрос
+        '401':
+          description: Неавторизованный доступ
+        '403':
+          description: Доступ запрещен для неадминистраторов
+      security:
+        - CookieAuthJWT: []
+ 
+
+  /actors/{actorId}:
+    patch:
+      summary: Изменение информации об актёре
+      description: Изменяет информацию об актёре.
+      parameters:
+        - in: path
+          name: actorId
+          required: true
+          schema:
+            type: string
+          description: Уникальный идентификатор актёра
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Actor'
+      responses:
+        '200':
+          description: Информация об актере успешно обновлена
+        '400':
+          description: Некорректный запрос
+        '401':
+          description: Неавторизованный доступ
+        '403':
+          description: Доступ запрещен для неадминистраторов
+        '404':
+          description: Актер не найден
+      security:
+        - CookieAuthJWT: []
+        
+    delete:
+      summary: Удаление актёра
+      description: Удаляет актёра по идентификатору.
+      parameters:
+        - in: path
+          name: actorId
+          required: true
+          schema:
+            type: string
+          description: Уникальный идентификатор актёра
+      responses:
+        '204':
+          description: Актёр удалён
+        '400':
+          description: Некорректный запрос
+        '401':
+          description: Неавторизованный доступ
+        '403':
+          description: Доступ запрещен для неадминистраторов
+        '404':
+          description: Актёр не найден
+      security:
+        - CookieAuthJWT: []
+        
+  /actors/{actorId}/movies:
+    get:
+      summary: Получение списка фильмов с участнием актера
+      description: Возвращает список фильмов, в каждом из актер участвовал.
+      parameters:
+        - in: path
+          name: actorId
+          required: true
+          schema:
+            type: string
+          description: Уникальный идентификатор актёра
+      responses:
+        '200':
+          description: Список фильмов с участием актера
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                    type: string
+        '400':
+          description: Некорректный запрос
+        '404':
+          description: Актёр не найден
+      security:
+        - CookieAuthJWT: []
+  
+  /movies:
+    post:
+      summary: Добавление фильма
+      description: Добавляет новый фильм в систему.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Movie'
+      responses:
+        '201':
+          description: Фильм успешно добавлен
+        '400':
+          description: Некорректный запрос
+        '401':
+          description: Неавторизованный доступ
+        '403':
+          description: Доступ запрещен для неадминистраторов
+      security:
+        - CookieAuthJWT: []
+
+    get:
+      summary: Получение списка фильмов с сортировкой и поиском
+      description: Возвращает список фильмов с возможностью сортировки по названию, рейтингу, дате выпуска и поиска по фрагменту названия или имени актёра.
+      parameters:
+        - in: query
+          name: sort
+          schema:
+            type: string
+            enum: [title, rating, releaseDate]
+          description: Критерий сортировки (по умолчанию - rating).
+        - in: query
+          name: order
+          schema:
+            type: string
+            enum: [asc, desc]
+          description: Порядок сортировки (по умолчанию - desc).
+        - in: query
+          name: title
+          schema:
+            type: string
+          description: Фрагмент названия фильма для поиска.
+        - in: query
+          name: actorName
+          schema:
+            type: string
+          description: Фрагмент имени актёра для поиска.
+      responses:
+        '200':
+          description: Список фильмов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Movie'
+        '400':
+          description: Некорректный запрос
+      security:
+        - CookieAuthJWT: []
+
+  /movies/{movieId}:
+    delete:
+      summary: Удаление фильма
+      description: Удаляет фильм по идентификатору.
+      parameters:
+        - in: path
+          name: movieId
+          required: true
+          schema:
+            type: string
+          description: Уникальный идентификатор фильма
+      responses:
+        '204':
+          description: Фильм удалён
+        '400':
+          description: Некорректный запрос
+        '401':
+          description: Неавторизованный доступ
+        '403':
+          description: Доступ запрещен для неадминистраторов
+        '404':
+          description: Фильм не найден
+
+      security:
+        - CookieAuthJWT: []
+        
+    patch:
+      summary: Частичное обновление информации о фильме
+      description: Обновляет часть информации о фильме по идентификатору.
+      parameters:
+        - in: path
+          name: movieId
+          required: true
+          schema:
+            type: string
+          description: Уникальный идентификатор фильма
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                releaseDate:
+                  type: string
+                  format: date
+                rating:
+                  type: number
+                actorIds:
+                  type: array
+                  items:
+                    type: string
+              additionalProperties: false
+      responses:
+        '200':
+          description: Информация о фильме обновлена
+        '400':
+          description: Некорректный запрос
+        '401':
+          description: Неавторизованный доступ
+        '403':
+          description: Доступ запрещен для неадминистраторов
+        '404':
+          description: Фильм не найден
+      security:
+        - CookieAuthJWT: []
+        
+        
+        
+  /register:
+    post:
+      summary: Регистрация пользователя и выдача токенов
+      parameters:
+        - in: query
+          name: adminMode
+          required: false
+          schema:
+            type: string
+          description: Выдача админм мода
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                admin:
+                  type: boolean
+              required:
+                - username
+                - password
+      responses:
+        '200':
+          description: Пользователь успешно зарегистрирован, токены выданы
+        '400':
+          description: Ошибка валидации данных пользователя
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                  - error
+                  - message
+                example:
+                  error: "ValidationError"
+                  message: "Неправильный формат ввода"
+        '409':
+          description: Пользователь с таким именем уже существует
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                  - error
+                  - message
+                example:
+                  error: "ConflictError"
+                  message: "Пользователь уже существует"
+                
+
+  /token:
+    get:
+      summary: Получение информации о текущем токене
+      security:
+        - CookieAuthJWT: []
+      responses:
+        '200':
+          description: Информация о токене предоставлена
+        '401':
+          description: Неавторизованный доступ
+
+  /token/refresh:
+    post:
+      summary: Обновление токена доступа
+      security:
+        - CookieAuthJWT: []
+      responses:
+        '200':
+          description: Токен успешно обновлен
+        '401':
+          description: Неавторизованный доступ
+        
+
+components:
+  schemas:
+    Actor:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор актёра
+        name:
+          type: string
+          example: 'mirustal'
+        gender:
+          type: string
+          enum: [male, female, other]
+          example: male
+        birthDate:
+          type: string
+          format: date
+          example: '1980-01-01'
+      required:
+        - name
+        - gender
+        - birthDate
+
+
+    Movie:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: uuid
+          description: Уникальный идентификатор фильма
+        title:
+          type: string
+          minLength: 1
+          maxLength: 150
+          example: 'mirustal live'
+        description:
+          type: string
+          maxLength: 1000
+          example: 'как же он устал'
+        releaseDate:
+          type: string
+          format: date
+          example: '2023-01-01'
+        rating:
+          type: number
+          minimum: 0
+          maximum: 10
+          example: 10
+      required:
+        - title
+        - description
+        - releaseDate
+        - rating
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        role:
+          type: string
+      required:
+        - role
+
+
+  securitySchemes:
+    CookieAuthJWT:
+      type: apiKey
+      in: cookie
+      name: jwtTokenCookie
+      description: Куки с JWT токеном
+    CookieAuthUser:
+      type: apiKey
+      in: cookie
+      name: userCookie
+      description: Куки с ID
+      
